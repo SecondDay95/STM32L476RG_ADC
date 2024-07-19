@@ -113,12 +113,18 @@ int main(void)
   //napieciem referencyjnym - 3.3V):
   HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
 
+  //Uruchomianie pomiaru przetwornika ADC1 w trybie ciaglego pomiaru (jednokrotnie uruchamiamy
+  //pomiar):
+  //HAL_ADC_Start(&hadc1);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  //*****************Odczyt danych z ADC1 w trybie pojedynczego pomiaru**********************//
+	  /*
 	  //Domyslnie przetwornik dziala w trybie pojedynczego pomiaru, wiec kazdy pomiar wymaga
 	  //rozpoczenia (rozpoczecie pomiaru przez przetwornik):
 	  HAL_ADC_Start(&hadc1);
@@ -126,12 +132,40 @@ int main(void)
 	  HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
 	  //Odczyt pomiaru z przetwornika:
 	  uint32_t value = HAL_ADC_GetValue(&hadc1);
+	  */
+	  //****************************************************************************************//
+
+	  //*******************Odczyt danych z ADC1 w trybie ciaglego pomiaru**********************//
+	  //Pomiar zostal uruchomiony jednokrotnie przed petla while (HAL_ADC_Start).
+	  //Odczyt pomiaru z przetwornika:
+	  //uint32_t value = HAL_ADC_GetValue(&hadc1);
+	  //****************************************************************************************//
+
+	  //*************Odczyt danych z 2 kanalow ADC1 w trybie pojedynczego pomiaru***************//
+	  uint32_t value[2];
+	  //Rozpoczecie pomiaru na obu kanalach:
+	  HAL_ADC_Start(&hadc1);
+	  //Czekanie na zakonczenie pomiaru dla kanalu 1:
+	  HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
+	  //Odczyt pomiaru z kanalu 1:
+	  value[0] = HAL_ADC_GetValue(&hadc1);
+	  //Czekanie na zakonczenie pomiaru z kanalu 2:
+	  HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
+	  //Odczyt pomiaru z kanalu 2:
+	  value[1] = HAL_ADC_GetValue(&hadc1);
+
+	  //****************************************************************************************//
+
 	  //Obliczenie napięcia mierzonego przez przetwornik (przeliczenie wartosci cyfrowej
 	  //na mierzona wartosc analogowa). Napiecie referencyjne wynosi 3.3V, a rozdzielczosc
 	  //przetwornika 12 bitów, czyli 4096 (2^12):
-	  float voltage = 3.3f * value / 4096;
+	  //float voltage = 3.3f * value / 4096;
+	  float voltage1 = 3.3f * value[0] / 4096;
+	  float voltage2 = 3.3f * value[1] / 4096;
 	  //Przeslanie pomiaru przez UART do komputera:
-	  printf("ADC = %lu (%.3f V)\n", value, voltage);
+	  //printf("ADC = %lu (%.3f V)\n", value, voltage);
+	  printf("ADC: Ch1 = %lu (%.3f), Ch2 = %lu (%.3f)\n", value[0], voltage1, value[1], voltage2);
+	  HAL_Delay(250);
 
     /* USER CODE END WHILE */
 
@@ -225,11 +259,11 @@ static void MX_ADC1_Init(void)
   hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   hadc1.Init.LowPowerAutoWait = DISABLE;
   hadc1.Init.ContinuousConvMode = DISABLE;
-  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.NbrOfConversion = 2;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
@@ -251,12 +285,21 @@ static void MX_ADC1_Init(void)
 
   /** Configure Regular Channel
   */
-  sConfig.Channel = ADC_CHANNEL_VREFINT;
+  sConfig.Channel = ADC_CHANNEL_1;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_640CYCLES_5;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
   sConfig.OffsetNumber = ADC_OFFSET_NONE;
   sConfig.Offset = 0;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_2;
+  sConfig.Rank = ADC_REGULAR_RANK_2;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
