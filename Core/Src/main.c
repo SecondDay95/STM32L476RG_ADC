@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -108,12 +108,31 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  //Kalibracja przetwornika ADC1 w trybie pracy ADC_SINGLE_ENDED (napięcie mierzone jest względem
+  //napięcia referencyjnego - napiecie mierzone jest miedzy wyjsciem a
+  //napieciem referencyjnym - 3.3V):
+  HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  //Domyslnie przetwornik dziala w trybie pojedynczego pomiaru, wiec kazdy pomiar wymaga
+	  //rozpoczenia (rozpoczecie pomiaru przez przetwornik):
+	  HAL_ADC_Start(&hadc1);
+	  //Czekanie na zakonczenie pomiaru przez przetwornik:
+	  HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
+	  //Odczyt pomiaru z przetwornika:
+	  uint32_t value = HAL_ADC_GetValue(&hadc1);
+	  //Obliczenie napięcia mierzonego przez przetwornik (przeliczenie wartosci cyfrowej
+	  //na mierzona wartosc analogowa). Napiecie referencyjne wynosi 3.3V, a rozdzielczosc
+	  //przetwornika 12 bitów, czyli 4096 (2^12):
+	  float voltage = 3.3f * value / 4096;
+	  //Przeslanie pomiaru przez UART do komputera:
+	  printf("ADC = %lu (%.3f V)\n", value, voltage);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
