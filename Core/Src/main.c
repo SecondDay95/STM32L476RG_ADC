@@ -120,9 +120,9 @@ int main(void)
   //pomiar):
   //HAL_ADC_Start(&hadc1);
 
-  volatile static uint16_t value[2];
+  volatile static uint16_t joystick[2];
   //Uruchomienie pomiaru przetwornika ADC1 w trybie ciaglym z wykorzystaniem DMA:
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)value, 2);
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)joystick, 2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -167,11 +167,11 @@ int main(void)
 	  //na mierzona wartosc analogowa). Napiecie referencyjne wynosi 3.3V, a rozdzielczosc
 	  //przetwornika 12 bitów, czyli 4096 (2^12):
 	  //float voltage = 3.3f * value / 4096;
-	  float voltage1 = 3.3f * value[0] / 4096;
-	  float voltage2 = 3.3f * value[1] / 4096;
+	  float voltage1 = 3.3f * joystick[0] / 4096;
+	  float voltage2 = 3.3f * joystick[1] / 4096;
 	  //Przeslanie pomiaru przez UART do komputera:
 	  //printf("ADC = %lu (%.3f V)\n", value, voltage);
-	  printf("ADC: Ch1 = %lu (%.3f), Ch2 = %lu (%.3f)\n", value[0], voltage1, value[1], voltage2);
+	  printf("ADC: VRx = %lu (%.3f), VRy = %lu (%.3f)\n", joystick[0], voltage1, joystick[1], voltage2);
 	  HAL_Delay(250);
 
     /* USER CODE END WHILE */
