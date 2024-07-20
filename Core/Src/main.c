@@ -131,6 +131,15 @@ int main(void)
   volatile static uint16_t joystick[2];
   //Uruchomienie pomiaru przetwornika ADC1 w trybie ciaglym z wykorzystaniem DMA:
   HAL_ADC_Start_DMA(&hadc1, (uint32_t*)joystick, 2);
+
+  //Uruchomienie kanalu 1 przetwornika DAC1:
+  HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
+  //Ustawiamy napiecie wyjsciowe przetwornika DAC1 (prog zadzialania)
+  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 700);
+
+  //Uruchomienie komparatora COMP1:
+  HAL_COMP_Start(&hcomp1);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
